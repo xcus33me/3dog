@@ -41,61 +41,6 @@ struct Vertex {
     glm::vec4 color;
 };
 
-void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id, GLuint& ebo_id) {
-    Vertex vertArray[4] = {
-        { glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
-        { glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
-        { glm::vec3(0.5f, 0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
-        { glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
-        
-        // star verticies
-        //{ glm::vec3(-0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) },
-        //{ glm::vec3(-0.3f, 0.3f, 0.0f), glm::vec4(0.8f, 0.2f, 0.9f, 1.0f)},
-        //{ glm::vec3(0.0f, 1.0f, 0.0f), glm::vec4(0.2f, 0.9f, 0.8f, 1.0f) },
-        //{ glm::vec3(0.3f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
-        //{ glm::vec3(0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
-        //{ glm::vec3(0.4f, -0.3f, 0.0f), glm::vec4(0.1f, 0.5f, 0.8f, 1.0f) },
-        //{ glm::vec3(0.7f, -1.0f, 0.0f), glm::vec4(0.7f, 0.7f, 0.1f, 1.0f) },
-        //{ glm::vec3(0.0f, -0.5f, 0.0f), glm::vec4(0.1f, 0.3f, 0.8f, 1.0f) },
-        //{ glm::vec3(-0.7f, -1.0f, 0.0f), glm::vec4(0.2f, 0.8f, 0.6f, 1.0f) },
-        //{ glm::vec3(-0.4f, -0.3f, 0.0f), glm::vec4(0.4f, 0.9f, 0.5f, 1.0f) },
-    };
-
-    uint32_t indices[8] = {
-        0, 1, 1, 2, 2, 3, 3, 0
-    };
-
-    // Создаем vertex array buffer для хранения аттрибьютов
-    glCreateVertexArrays(1, &vao_id);
-    glBindVertexArray(vao_id);
-
-    // Создаем vertex buffer object
-    glCreateBuffers(1, &vbo_id);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertArray), vertArray, GL_STATIC_DRAW);
-
-    // Создаем EBO (element buffer object)
-    glCreateBuffers(1, &ebo_id);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_id);
-    glBufferData(
-        GL_ELEMENT_ARRAY_BUFFER,
-        sizeof(indices),
-        indices,
-        GL_STATIC_DRAW
-    );
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-    glEnableVertexAttribArray(1);
-
-    // Биндим к 0, чтобы не изменить наши буфферы
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);
-}
-
 const int windowWidth = 1280;
 const int windowHeight = 720;
 const char* winodwTitle = "3dog";
@@ -157,8 +102,77 @@ int main() {
     glDeleteShader(fragmentShader);
 
     // Создаем VAO и VBO, загружаем vertices
-    GLuint VaoId, VboId, EboId;
-    UploadVerticesAndSpecs(VaoId, VboId, EboId);
+    Vertex vertArray[10] = {
+        //{ glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        //{ glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        //{ glm::vec3(0.5f, 0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        //{ glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        
+        // star verticies
+        { glm::vec3(-0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) },
+        { glm::vec3(-0.3f, 0.3f, 0.0f), glm::vec4(0.8f, 0.2f, 0.9f, 1.0f)},
+        { glm::vec3(0.0f, 1.0f, 0.0f), glm::vec4(0.2f, 0.9f, 0.8f, 1.0f) },
+        { glm::vec3(0.3f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
+        { glm::vec3(0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
+        { glm::vec3(0.4f, -0.3f, 0.0f), glm::vec4(0.1f, 0.5f, 0.8f, 1.0f) },
+        { glm::vec3(0.7f, -1.0f, 0.0f), glm::vec4(0.7f, 0.7f, 0.1f, 1.0f) },
+        { glm::vec3(0.0f, -0.5f, 0.0f), glm::vec4(0.1f, 0.3f, 0.8f, 1.0f) },
+        { glm::vec3(-0.7f, -1.0f, 0.0f), glm::vec4(0.2f, 0.8f, 0.6f, 1.0f) },
+        { glm::vec3(-0.4f, -0.3f, 0.0f), glm::vec4(0.4f, 0.9f, 0.5f, 1.0f) },
+    };
+
+    uint32_t indices[24] = {
+        0, 9, 1,    1, 2, 3,    3, 4, 5,
+        5, 6, 7,    7, 8, 9,    1, 3, 9,
+        3, 5, 9,    5, 7, 9
+    };
+
+    // Создаем vertex array buffer для хранения аттрибьютов
+    GLuint vao;
+    glCreateVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Создаем EBO (element buffer object)
+    GLuint ebo;
+    glCreateBuffers(1, &ebo);
+    glNamedBufferData(ebo, sizeof(indices), indices, GL_STATIC_DRAW);
+    glVertexArrayElementBuffer(vao, ebo);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    //glBufferData(
+    //    GL_ELEMENT_ARRAY_BUFFER,
+    //    sizeof(indices),
+    //    indices,
+    //    GL_STATIC_DRAW
+    //);
+
+    // Создаем vertex buffer object
+    GLuint vertexBindingPoint = 0;
+    GLuint vbo;
+    glCreateBuffers(1, &vbo);
+    glNamedBufferData(vbo, sizeof(vertArray), vertArray, GL_STATIC_DRAW);
+    glVertexArrayVertexBuffer(vao, vertexBindingPoint, vbo, 0, sizeof(Vertex));
+    //glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertArray), vertArray, GL_STATIC_DRAW);
+
+    GLuint positionAttributeSlot = 0;
+    glVertexArrayAttribFormat(vao, positionAttributeSlot, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+    glVertexArrayAttribBinding(vao, positionAttributeSlot, vertexBindingPoint);
+    glEnableVertexArrayAttrib(vao, positionAttributeSlot);
+
+    GLuint colorAttributeSlot = 1;
+    glVertexArrayAttribFormat(vao, colorAttributeSlot, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, color));
+    glVertexArrayAttribBinding(vao, colorAttributeSlot, vertexBindingPoint);
+    glEnableVertexArrayAttrib(vao, colorAttributeSlot);
+    
+    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    //glEnableVertexAttribArray(0);
+    //glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    //glEnableVertexAttribArray(1);
+
+    // Биндим к 0, чтобы не изменить наши буфферы
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindVertexArray(0);
 
     // events
     glfwSetCursorPosCallback(window, cursor_position_callback);
@@ -170,16 +184,18 @@ int main() {
 
         // triangle 
         glUseProgram(shaderProgram);
-        glBindVertexArray(VaoId);
+        glBindVertexArray(vao);
         //glDrawArrays(GL_LINES, 0, 4);
-        glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VaoId);
-    glDeleteBuffers(1, &VboId);
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
+
     glDeleteProgram(shaderProgram);
 
     glfwDestroyWindow(window);
