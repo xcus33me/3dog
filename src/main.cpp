@@ -27,7 +27,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 // callbacks
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-    std::cout << "Cursor: " << xpos << " " << ypos << std::endl;
+    //std::cout << "Cursor: " << xpos << " " << ypos << std::endl;
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -41,11 +41,24 @@ struct Vertex {
     glm::vec4 color;
 };
 
-void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id) {
-    Vertex vertArray[3] = {
-        { glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) },
-        { glm::vec3(0.0f, 0.5f, 0.0f), glm::vec4(0.2f, 0.9f, 0.8f, 1.0f) },
-        { glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) }
+void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id, GLuint& ebo_id) {
+    Vertex vertArray[10] = {
+        { glm::vec3(-0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) },
+        { glm::vec3(-0.3f, 0.3f, 0.0f), glm::vec4(0.8f, 0.2f, 0.9f, 1.0f)},
+        { glm::vec3(0.0f, 1.0f, 0.0f), glm::vec4(0.2f, 0.9f, 0.8f, 1.0f) },
+        { glm::vec3(0.3f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
+        { glm::vec3(0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
+        { glm::vec3(0.4f, -0.3f, 0.0f), glm::vec4(0.1f, 0.5f, 0.8f, 1.0f) },
+        { glm::vec3(0.7f, -1.0f, 0.0f), glm::vec4(0.7f, 0.7f, 0.1f, 1.0f) },
+        { glm::vec3(0.0f, -0.5f, 0.0f), glm::vec4(0.1f, 0.3f, 0.8f, 1.0f) },
+        { glm::vec3(-0.7f, -1.0f, 0.0f), glm::vec4(0.2f, 0.8f, 0.6f, 1.0f) },
+        { glm::vec3(-0.4f, -0.3f, 0.0f), glm::vec4(0.4f, 0.9f, 0.5f, 1.0f) },
+    };
+
+    uint32_t indices[24] = {
+        0, 9, 1,    1, 2, 3,    3, 4, 5,
+        5, 6, 7,    7, 8, 9,    1, 3, 9,
+        3, 5, 9,    5, 7, 9
     };
 
     // Создаем vertex array buffer для хранения аттрибьютов
@@ -57,6 +70,16 @@ void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertArray), vertArray, GL_STATIC_DRAW);
 
+    // Создаем EBO (element buffer object)
+    glCreateBuffers(1, &ebo_id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_id);
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        sizeof(indices),
+        indices,
+        GL_STATIC_DRAW
+    );
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
 
@@ -64,8 +87,9 @@ void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id) {
     glEnableVertexAttribArray(1);
 
     // Биндим к 0, чтобы не изменить наши буфферы
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //glBindVertexArray(0);
 }
 
 const int windowWidth = 1280;
@@ -82,11 +106,11 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLfloat vertices[] = {
-        -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
-        0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
-        0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f
-    };
+    //GLfloat vertices[] = {
+    //    -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
+    //    0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
+    //    0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f
+    //};
 
     GLFWwindow* window = glfwCreateWindow(
         windowWidth,
@@ -129,8 +153,8 @@ int main() {
     glDeleteShader(fragmentShader);
 
     // Создаем VAO и VBO, загружаем vertices
-    GLuint VaoId, VboId;
-    UploadVerticesAndSpecs(VaoId, VboId);
+    GLuint VaoId, VboId, EboId;
+    UploadVerticesAndSpecs(VaoId, VboId, EboId);
 
     // events
     glfwSetCursorPosCallback(window, cursor_position_callback);
@@ -143,7 +167,8 @@ int main() {
         // triangle 
         glUseProgram(shaderProgram);
         glBindVertexArray(VaoId);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         glfwPollEvents();
