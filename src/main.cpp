@@ -42,23 +42,27 @@ struct Vertex {
 };
 
 void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id, GLuint& ebo_id) {
-    Vertex vertArray[10] = {
-        { glm::vec3(-0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) },
-        { glm::vec3(-0.3f, 0.3f, 0.0f), glm::vec4(0.8f, 0.2f, 0.9f, 1.0f)},
-        { glm::vec3(0.0f, 1.0f, 0.0f), glm::vec4(0.2f, 0.9f, 0.8f, 1.0f) },
-        { glm::vec3(0.3f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
-        { glm::vec3(0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
-        { glm::vec3(0.4f, -0.3f, 0.0f), glm::vec4(0.1f, 0.5f, 0.8f, 1.0f) },
-        { glm::vec3(0.7f, -1.0f, 0.0f), glm::vec4(0.7f, 0.7f, 0.1f, 1.0f) },
-        { glm::vec3(0.0f, -0.5f, 0.0f), glm::vec4(0.1f, 0.3f, 0.8f, 1.0f) },
-        { glm::vec3(-0.7f, -1.0f, 0.0f), glm::vec4(0.2f, 0.8f, 0.6f, 1.0f) },
-        { glm::vec3(-0.4f, -0.3f, 0.0f), glm::vec4(0.4f, 0.9f, 0.5f, 1.0f) },
+    Vertex vertArray[4] = {
+        { glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        { glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        { glm::vec3(0.5f, 0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        { glm::vec3(0.5f, -0.5f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) }, 
+        
+        // star verticies
+        //{ glm::vec3(-0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.8f, 0.2f, 1.0f) },
+        //{ glm::vec3(-0.3f, 0.3f, 0.0f), glm::vec4(0.8f, 0.2f, 0.9f, 1.0f)},
+        //{ glm::vec3(0.0f, 1.0f, 0.0f), glm::vec4(0.2f, 0.9f, 0.8f, 1.0f) },
+        //{ glm::vec3(0.3f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
+        //{ glm::vec3(0.8f, 0.3f, 0.0f), glm::vec4(0.9f, 0.2f, 0.8f, 1.0f) },
+        //{ glm::vec3(0.4f, -0.3f, 0.0f), glm::vec4(0.1f, 0.5f, 0.8f, 1.0f) },
+        //{ glm::vec3(0.7f, -1.0f, 0.0f), glm::vec4(0.7f, 0.7f, 0.1f, 1.0f) },
+        //{ glm::vec3(0.0f, -0.5f, 0.0f), glm::vec4(0.1f, 0.3f, 0.8f, 1.0f) },
+        //{ glm::vec3(-0.7f, -1.0f, 0.0f), glm::vec4(0.2f, 0.8f, 0.6f, 1.0f) },
+        //{ glm::vec3(-0.4f, -0.3f, 0.0f), glm::vec4(0.4f, 0.9f, 0.5f, 1.0f) },
     };
 
-    uint32_t indices[24] = {
-        0, 9, 1,    1, 2, 3,    3, 4, 5,
-        5, 6, 7,    7, 8, 9,    1, 3, 9,
-        3, 5, 9,    5, 7, 9
+    uint32_t indices[8] = {
+        0, 1, 1, 2, 2, 3, 3, 0
     };
 
     // Создаем vertex array buffer для хранения аттрибьютов
@@ -167,8 +171,8 @@ int main() {
         // triangle 
         glUseProgram(shaderProgram);
         glBindVertexArray(VaoId);
-        //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
+        //glDrawArrays(GL_LINES, 0, 4);
+        glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
 
         glfwPollEvents();
