@@ -7,6 +7,8 @@
 // STL
 #include <iostream>
 
+#include "window.hpp"
+
 // shader
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -51,38 +53,22 @@ int main() {
         return -1;
     }
     
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    Window* window = Window::createWindow(windowWidth, windowHeight, winodwTitle, false);
 
-    //GLfloat vertices[] = {
-    //    -0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
-    //    0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f,
-    //    0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f
-    //};
-
-    GLFWwindow* window = glfwCreateWindow(
-        windowWidth,
-        windowHeight,
-        winodwTitle,
-        nullptr,
-        nullptr
-    );
-
-    if (window == NULL) {
+    if (window == nullptr) {
         std::cout << "Failed to create window!\n";
         glfwTerminate();
         return -1;
     }
 
-    glfwMakeContextCurrent(window);
+    window->useMainCallbacks();
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD!";
         return -1;
     }
 
-    glViewport(0, 0, 1280, 720);
+    glViewport(0, 0, windowWidth, windowHeight);
 
     // Создаем объект вертекс шейдера и получаем его ссылку.
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -137,13 +123,7 @@ int main() {
     glCreateBuffers(1, &ebo);
     glNamedBufferData(ebo, sizeof(indices), indices, GL_STATIC_DRAW);
     glVertexArrayElementBuffer(vao, ebo);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    //glBufferData(
-    //    GL_ELEMENT_ARRAY_BUFFER,
-    //    sizeof(indices),
-    //    indices,
-    //    GL_STATIC_DRAW
-    //);
+
 
     // Создаем vertex buffer object
     GLuint vertexBindingPoint = 0;
@@ -151,8 +131,6 @@ int main() {
     glCreateBuffers(1, &vbo);
     glNamedBufferData(vbo, sizeof(vertArray), vertArray, GL_STATIC_DRAW);
     glVertexArrayVertexBuffer(vao, vertexBindingPoint, vbo, 0, sizeof(Vertex));
-    //glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertArray), vertArray, GL_STATIC_DRAW);
 
     GLuint positionAttributeSlot = 0;
     glVertexArrayAttribFormat(vao, positionAttributeSlot, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
@@ -163,22 +141,12 @@ int main() {
     glVertexArrayAttribFormat(vao, colorAttributeSlot, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, color));
     glVertexArrayAttribBinding(vao, colorAttributeSlot, vertexBindingPoint);
     glEnableVertexArrayAttrib(vao, colorAttributeSlot);
-    
-    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    //glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-    //glEnableVertexAttribArray(1);
-
-    // Биндим к 0, чтобы не изменить наши буфферы
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //glBindVertexArray(0);
 
     // events
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window->getWindow(), cursor_position_callback);
+    glfwSetKeyCallback(window->getWindow(), key_callback);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!window->shouldClose()) {
         glClearColor(0.8f, 0.3f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -187,7 +155,7 @@ int main() {
         glBindVertexArray(vao);
         //glDrawArrays(GL_LINES, 0, 4);
         glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(window->getWindow());
 
         glfwPollEvents();
     }
@@ -198,7 +166,7 @@ int main() {
 
     glDeleteProgram(shaderProgram);
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(window->getWindow());
     glfwTerminate();
     return 0;
 }
