@@ -148,7 +148,6 @@ int main() {
         glfwPollEvents();
     }
 
-
     glDeleteVertexArrays(1, &VaoId);
     glDeleteBuffers(1, &VboId);
     glDeleteProgram(shaderProgram);
