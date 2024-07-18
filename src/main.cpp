@@ -11,8 +11,10 @@
 const char* vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec4 aColor;\n"
+"out vec4 fColor;\n"
 "void main()\n"
 "{\n"
+"   gl_Position = vec4(aPos, 1.0);\n"
 "   fColor = aColor;\n"
 "};\n";
 const char* fragmentShaderSource = "#version 330 core\n"
@@ -23,12 +25,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "   FragColor = fColor;\n"
 "}\n\0";
 
-const int windowWidth = 1280;
-const int windowHeight = 720;
-const char* winodwTitle = "3dog";
-
 // callbacks
-
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
     std::cout << "Cursor: " << xpos << " " << ypos << std::endl;
 }
@@ -70,6 +67,10 @@ void UploadVerticesAndSpecs(GLuint& vao_id, GLuint& vbo_id) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
+
+const int windowWidth = 1280;
+const int windowHeight = 720;
+const char* winodwTitle = "3dog";
 
 int main() {
     if (!glfwInit()) {
