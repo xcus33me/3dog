@@ -2,11 +2,35 @@
 
 #include "shader.hpp"
 
-#include <iostream>
 #include <fstream>
-#include <vector>
-#include <string>
+#include <functional>
+#include <iostream>
 #include <sstream>
+#include <string>
+#include <unordered_set>
+#include <vector>
+
+
+struct hashShaderVar {
+    std::size_t operator()(const ShaderVariable& key) const {
+        std::size_t seed = std::hash<std::string>()(key.name);
+        seed ^= std::hash<uint32_t>()(key.shaderProgram) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    } 
+};
+
+static std::unordered_set<ShaderVariable, hashShaderVar> allShaderVariableLocations;
+
+Shader::Shader(const std::string& path, GLenum shaderType) {
+    std::string shaderSrc = readFile(path);
+    if (shaderSrc.empty()) {
+        destroy();
+    }
+
+    const char* src = shaderSrc.c_str();
+    m_shaderId = glCreateShader(shaderType);
+    glShaderSource(m_shaderId, 1, &src, nullptr);
+}
 
 std::string Shader::readFile(const std::string& path) {
     std::ifstream file(path);
@@ -21,75 +45,65 @@ std::string Shader::readFile(const std::string& path) {
     return buffer.str();
 }
 
-GLuint Shader::compileShader(const std::string& shaderSrc, GLenum shaderType) {
-    const char* src = shaderSrc.c_str();
+void Shader::compile() {
+    glCompileShader(m_shaderId);
     
-    GLuint someShader = glCreateShader(shaderType);
-    glShaderSource(someShader, 1, &src, nullptr);
-    glCompileShader(someShader);
-
     GLint isCompiled = 0;
-    glGetShaderiv(someShader, GL_COMPILE_STATUS, &isCompiled);
+    glGetShaderiv(m_shaderId, GL_COMPILE_STATUS, &isCompiled);
+    
     if (isCompiled == GL_FALSE) {
         GLint maxLength = 0;
-        glGetShaderiv(someShader, GL_INFO_LOG_LENGTH, &maxLength);
+        glGetShaderiv(m_shaderId, GL_INFO_LOG_LENGTH, &maxLength);
 
         std::vector<GLchar> infoLog(maxLength);
-        glGetShaderInfoLog(someShader, maxLength, &maxLength, infoLog.data());
+        glGetShaderInfoLog(m_shaderId, maxLength, &maxLength, infoLog.data());
 
         std::cout << "Shader Compilation failed: \n";
         for (GLchar c : infoLog) {
             std::cout << c;
         }
 
-        glDeleteShader(someShader);
-        return 0;
+        destroy();
+        return;
     }
-
-    return someShader;
 }
 
-GLuint Shader::createShaderProgram(const std::string& vert_shader_path, const std::string& frag_shader_path) {
-    std::string vertexShaderSource = readFile(vert_shader_path);
-    std::string fragmentShaderSource = readFile(frag_shader_path);
+void Shader::destroy() {
+    if (m_shaderId) {
+        glDeleteShader(m_shaderId);
+    }
+}
 
-    GLuint vertexShader = compileShader(vertexShaderSource, GL_VERTEX_SHADER);
-    GLuint fragmentShader = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+GLuint Shader::getId() const {
+    return m_shaderId;
+}
 
-    if (vertexShader && fragmentShader == 0) {
-        return 0;
-    } 
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+ShaderProgram::ShaderProgram(Shader vertexShader, Shader fragmentShader) {
+    m_progId = glCreateProgram();
+    glAttachShader(m_progId, vertexShader.getId());
+    glAttachShader(m_progId, fragmentShader.getId());
+    glLinkProgram(m_progId);
 
     GLint isLinked = 0;
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
+    glGetProgramiv(m_progId, GL_LINK_STATUS, &isLinked);
     if (isLinked == GL_FALSE) {
         GLint maxLength = 0;
-        glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+        glGetProgramiv(m_progId, GL_INFO_LOG_LENGTH, &maxLength);
 
         std::vector<GLchar> infoLog(maxLength);
-        glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
+        glGetProgramInfoLog(m_progId, maxLength, &maxLength, &infoLog[0]);
 
-        glDeleteProgram(shaderProgram);
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-        return 0;
+        glDeleteProgram(m_progId);
     }
 
-    glDetachShader(shaderProgram, vertexShader);
-    glDetachShader(shaderProgram, fragmentShader);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDetachShader(m_progId, vertexShader.getId());
+    glDetachShader(m_progId, fragmentShader.getId());
 
     GLint numUniforms;
-    glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &numUniforms);
+    glGetProgramiv(m_progId, GL_ACTIVE_UNIFORMS, &numUniforms);
 
     GLint maxCharLength;
-    glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxCharLength);
+    glGetProgramiv(m_progId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxCharLength);
 
     if (numUniforms > 0 && maxCharLength > 0) {
         char* buffer = new char[sizeof(char) * maxCharLength];
@@ -97,25 +111,40 @@ GLuint Shader::createShaderProgram(const std::string& vert_shader_path, const st
             int length, size;
             GLenum dataType;
 
-            glGetActiveUniform(shaderProgram, i, maxCharLength, &length, &size, &dataType, buffer);
-            GLint varLocation = glGetUniformLocation(shaderProgram, buffer);
+            glGetActiveUniform(m_progId, i, maxCharLength, &length, &size, &dataType, buffer);
+            GLint varLocation = glGetUniformLocation(m_progId, buffer);
+
+            ShaderVariable shaderVar(std::string((buffer), length), varLocation, m_progId);
+            allShaderVariableLocations.emplace(shaderVar);
 
             std::cout << "Uniform ";
             for (size_t i = 0; i < maxCharLength; ++i) {
                 std::cout << buffer[i];
             }
             std::cout << " has location " << varLocation << std::endl;
-            
+
             std::fill(buffer, buffer + maxCharLength, '\0');
         }
         delete[] buffer;
     }
-    
-    return shaderProgram;
 }
 
-void Shader::deleteProgram(GLuint someProgram) {
-    if (someProgram) {
-        glDeleteProgram(someProgram);
+void ShaderProgram::destroy() {
+    if (m_progId) {
+        glDeleteProgram(m_progId);
     }
+}
+
+ShaderVariable::ShaderVariable(const std::string& n, GLint loc, GLuint prog)
+    : name(n)
+    , varLocation(loc)
+    , shaderProgram(prog) {
+}
+
+bool ShaderVariable::operator==(const ShaderVariable& other) const {
+    return (shaderProgram == other.shaderProgram && name == other.name);
+}
+
+GLuint ShaderProgram::getId() const {
+    return m_progId;
 }

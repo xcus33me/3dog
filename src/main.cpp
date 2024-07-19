@@ -55,11 +55,14 @@ int main() {
     glViewport(0, 0, windowWidth, windowHeight);
 
     // Создаем объект вертекс шейдера и получаем его ссылку.
+    Shader vertexShader("../../shaders/vert_shader.glsl", GL_VERTEX_SHADER);
+    Shader fragmentShader("../../shaders/frag_shader.glsl", GL_FRAGMENT_SHADER);
 
-    GLuint shaderProgram = Shader::createShaderProgram("../../shaders/vert_shader.glsl", "../../shaders/frag_shader.glsl");
-    if (!shaderProgram) {
-        return -1;
-    }
+    vertexShader.compile();
+    fragmentShader.compile();
+
+
+    ShaderProgram shaderProgram(vertexShader, fragmentShader);
 
     // Создаем VAO и VBO, загружаем vertices
     Vertex vertArray[10] = {
@@ -125,7 +128,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // triangle 
-        glUseProgram(shaderProgram);
+        glUseProgram(shaderProgram.getId());
         glBindVertexArray(vao);
         //glDrawArrays(GL_LINES, 0, 4);
         glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_INT, 0);
@@ -138,7 +141,9 @@ int main() {
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ebo);
 
-    Shader::deleteProgram(shaderProgram);
+    vertexShader.destroy();
+    fragmentShader.destroy();
+    shaderProgram.destroy();
 
     glfwDestroyWindow(window->getWindow());
     glfwTerminate();
