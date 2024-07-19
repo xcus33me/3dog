@@ -8,24 +8,8 @@
 #include <iostream>
 
 #include "window.hpp"
+#include "shader.hpp"
 
-// shader
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 1) in vec4 aColor;\n"
-"out vec4 fColor;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos, 1.0);\n"
-"   fColor = aColor;\n"
-"};\n";
-const char* fragmentShaderSource = "#version 330 core\n"
-"in vec4 fColor;\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = fColor;\n"
-"}\n\0";
 
 // callbacks
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -71,21 +55,11 @@ int main() {
     glViewport(0, 0, windowWidth, windowHeight);
 
     // Создаем объект вертекс шейдера и получаем его ссылку.
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);   
-    glCompileShader(vertexShader);
 
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    GLuint shaderProgram = Shader::createShaderProgram("../../shaders/vert_shader.glsl", "../../shaders/frag_shader.glsl");
+    if (!shaderProgram) {
+        return -1;
+    }
 
     // Создаем VAO и VBO, загружаем vertices
     Vertex vertArray[10] = {
@@ -147,7 +121,7 @@ int main() {
     glfwSetKeyCallback(window->getWindow(), key_callback);
 
     while (!window->shouldClose()) {
-        glClearColor(0.8f, 0.3f, 0.1f, 1.0f);
+        glClearColor(0.1f, 0.3f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // triangle 
@@ -164,7 +138,7 @@ int main() {
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ebo);
 
-    glDeleteProgram(shaderProgram);
+    Shader::deleteProgram(shaderProgram);
 
     glfwDestroyWindow(window->getWindow());
     glfwTerminate();
