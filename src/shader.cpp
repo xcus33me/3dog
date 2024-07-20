@@ -1,4 +1,6 @@
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader.hpp"
 
@@ -147,4 +149,110 @@ bool ShaderVariable::operator==(const ShaderVariable& other) const {
 
 GLuint ShaderProgram::getId() const {
     return m_progId;
+}
+
+
+// upload functions
+
+void ShaderProgram::uploadVec4(const char* varName, const glm::vec4& vec4) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform4f(varLocation, vec4.x, vec4.y, vec4.z, vec4.w);
+    } 
+}
+
+void ShaderProgram::uploadVec3(const char* varName, const glm::vec3& vec3) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform3f(varLocation, vec3.x, vec3.y, vec3.z);
+    }
+}
+
+void ShaderProgram::uploadVec2(const char* varName, const glm::vec2& vec2) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform2f(varLocation, vec2.x, vec2.y);
+    }
+}
+
+void ShaderProgram::uploadIVec4(const char* varName, const glm::ivec4& vec4) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform4i(varLocation, vec4.x, vec4.y, vec4.z, vec4.w);
+    }
+}
+
+void ShaderProgram::uploadIVec3(const char* varName, const glm::ivec3& vec3) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform3i(varLocation, vec3.x, vec3.y, vec3.z);
+    }
+}
+
+void ShaderProgram::uploadIVec2(const char* varName, const glm::ivec2& vec2) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform2i(varLocation, vec2.x, vec2.y);
+    }
+}
+
+void ShaderProgram::uploadFloat(const char* varName, float value) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform1f(varLocation, value);
+    }
+}
+
+void ShaderProgram::uploadInt(const char* varName, int value) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform1i(varLocation, value);
+    }
+}
+
+void ShaderProgram::uploadIntArray(const char* varName, int length, const int* array) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform1iv(varLocation, length, array);
+    }
+}
+
+void ShaderProgram::uploadUInt(const char* varName, uint32_t value) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform1ui(varLocation, value);
+    }
+}
+
+void ShaderProgram::uploadBool(const char* varName, bool value) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniform1i(varLocation, value ? 1 : 0);
+    }
+}
+
+void ShaderProgram::uploadMat4(const char* varName, const glm::mat4& mat4) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniformMatrix4fv(varLocation, 1, GL_FALSE, glm::value_ptr(mat4));
+    }
+}
+
+void ShaderProgram::uploadMat3(const char* varName, const glm::mat3& mat3) const {
+    GLint varLocation = getShaderVariableLocation(*this, varName);
+    if (varLocation != -1) {
+        glUniformMatrix3fv(varLocation, 1, GL_FALSE, glm::value_ptr(mat3));
+    }
+}
+
+GLint ShaderProgram::getShaderVariableLocation(const ShaderProgram& shaderProgram, const char* varName) {
+    ShaderVariable var(varName, 0, shaderProgram.getId());
+
+    auto iter = allShaderVariableLocations.find(var);
+    if (iter != allShaderVariableLocations.end()) {
+        return iter->varLocation;
+    }
+    
+    std::cout << "Failed to find variable location: " << varName << std::endl;
+    return -1;
 }
